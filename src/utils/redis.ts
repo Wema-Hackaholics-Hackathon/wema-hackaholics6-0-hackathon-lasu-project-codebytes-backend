@@ -2,7 +2,7 @@ import Redis from "ioredis";
 import { env } from "../config/env";
 
 export const redis = new Redis(env.REDIS_URL, {
-  maxRetriesPerRequest: 3,
+  maxRetriesPerRequest: null, // Required for BullMQ
   retryStrategy(times) {
     const delay = Math.min(times * 50, 2000);
     return delay;
@@ -12,12 +12,9 @@ export const redis = new Redis(env.REDIS_URL, {
 // Export for BullMQ
 export const redisClient = redis;
 
-redis.on("connect", () => {
-  console.log("✅ Redis connected");
-});
-
+// Only log errors, not successful connections (logged in server.ts)
 redis.on("error", (err) => {
-  console.error("❌ Redis error:", err);
+  console.error("[Redis] Connection error:", err);
 });
 
 // Graceful shutdown

@@ -43,18 +43,38 @@ export class SentimentService {
   async warmUpModels(): Promise<void> {
     if (this.modelsWarmedUp) return;
 
-    logger.info("Warming up NLP models...");
+    // Check if API key is configured
+    if (!this.apiKey) {
+      logger.warn(
+        "[NLP] Hugging Face API key not configured. Sentiment analysis will use fallback rule-based approach."
+      );
+      logger.warn(
+        "[NLP] To enable AI-powered sentiment analysis, add HUGGINGFACE_API_KEY to your .env file"
+      );
+      logger.warn(
+        "[NLP] Get your free API key from: https://huggingface.co/settings/tokens"
+      );
+      return;
+    }
+
+    logger.info("[NLP] Warming up models with test requests...");
     try {
       await Promise.all([
         this.analyzeSentimentRaw("Hello world"),
         this.detectEmotionRaw("I am happy"),
       ]);
       this.modelsWarmedUp = true;
-      logger.info("NLP models warmed up successfully");
+      logger.info(
+        "[NLP] Models warmed up successfully - AI-powered analysis ready"
+      );
     } catch (error) {
-      logger.warn("Model warm-up failed, will warm up on first request", {
-        error,
-      });
+      logger.warn(
+        "[NLP] Model warm-up encountered errors (this is normal on first request)"
+      );
+      logger.warn(
+        "[NLP] Models will automatically warm up on first feedback submission"
+      );
+      // Don't throw - models will warm up on first real request
     }
   }
 
@@ -414,21 +434,32 @@ export class SentimentService {
   ): Promise<SentimentResult> {
     if (error.response?.status === 503) {
       // Model is loading, wait and retry
-      logger.warn("Model is loading, waiting for warm-up...");
+      logger.debug("[NLP] Sentiment model is loading, waiting for warm-up...");
       await this.sleep(NLP_CONFIG.PROCESSING.MODEL_WARMUP_DELAY);
       return this.analyzeSentimentRaw(text);
     }
 
     if (error.response?.status === 429) {
       // Rate limit, use exponential backoff
-      logger.warn("Rate limit hit, retrying with backoff...");
+      logger.warn("[NLP] Rate limit hit, retrying with backoff...");
       await this.sleep(NLP_CONFIG.PROCESSING.RETRY_DELAY);
       return this.analyzeSentimentRaw(text);
     }
 
-    logger.error("Sentiment analysis API error, using fallback", {
-      error: error.message,
-    });
+    if (error.response?.status === 401) {
+      logger.error(
+        "[NLP] Invalid Hugging Face API key. Please check HUGGINGFACE_API_KEY in .env"
+      );
+    } else if (error.code === "ENOTFOUND" || error.code === "ECONNREFUSED") {
+      logger.warn(
+        "[NLP] Cannot reach Hugging Face API - check internet connection"
+      );
+    } else {
+      logger.debug(
+        "[NLP] Sentiment API temporarily unavailable, using fallback"
+      );
+    }
+
     return this.fallbackSentimentAnalysis(text);
   }
 
@@ -440,14 +471,23 @@ export class SentimentService {
     text: string
   ): Promise<EmotionResult> {
     if (error.response?.status === 503) {
-      logger.warn("Emotion model is loading, waiting for warm-up...");
+      logger.debug("[NLP] Emotion model is loading, waiting for warm-up...");
       await this.sleep(NLP_CONFIG.PROCESSING.MODEL_WARMUP_DELAY);
       return this.detectEmotionRaw(text);
     }
 
-    logger.error("Emotion detection API error, using fallback", {
-      error: error.message,
-    });
+    if (error.response?.status === 401) {
+      logger.error(
+        "[NLP] Invalid Hugging Face API key. Please check HUGGINGFACE_API_KEY in .env"
+      );
+    } else if (error.code === "ENOTFOUND" || error.code === "ECONNREFUSED") {
+      logger.warn(
+        "[NLP] Cannot reach Hugging Face API - check internet connection"
+      );
+    } else {
+      logger.debug("[NLP] Emotion API temporarily unavailable, using fallback");
+    }
+
     return this.fallbackEmotionAnalysis(text);
   }
 
