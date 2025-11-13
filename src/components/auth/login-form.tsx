@@ -1,35 +1,39 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/auth-context';
-import { Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
-import Link from 'next/link';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/auth-context";
+import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
+import Link from "next/link";
 
 export function LoginForm() {
   const router = useRouter();
   const { login } = useAuth();
-  
+
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
     rememberMe: false,
   });
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsLoading(true);
 
     try {
       await login(formData.email, formData.password);
-      router.push('/');
+      router.push("/dashboard");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed. Please check your credentials.');
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Login failed. Please check your credentials."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -37,20 +41,20 @@ export function LoginForm() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
   // Demo credentials for quick access
-  const fillDemoCredentials = (role: 'admin' | 'manager' | 'agent') => {
+  const fillDemoCredentials = (role: "admin" | "manager" | "agent") => {
     const credentials = {
-      admin: { email: 'admin@wemabank.com', password: 'Admin123!@#' },
-      manager: { email: 'manager@wemabank.com', password: 'Manager123!@#' },
-      agent: { email: 'agent@wemabank.com', password: 'Agent123!@#' },
+      admin: { email: "admin@wemabank.com", password: "Admin123!@#" },
+      manager: { email: "manager@wemabank.com", password: "Manager123!@#" },
+      agent: { email: "agent@wemabank.com", password: "Agent123!@#" },
     };
-    setFormData(prev => ({ ...prev, ...credentials[role] }));
+    setFormData((prev) => ({ ...prev, ...credentials[role] }));
   };
 
   return (
@@ -69,7 +73,10 @@ export function LoginForm() {
 
         {/* Email Field */}
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Email Address
           </label>
           <input
@@ -87,14 +94,17 @@ export function LoginForm() {
 
         {/* Password Field */}
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="password"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Password
           </label>
           <div className="relative">
             <input
               id="password"
               name="password"
-              type={showPassword ? 'text' : 'password'}
+              type={showPassword ? "text" : "password"}
               autoComplete="current-password"
               required
               value={formData.password}
@@ -148,31 +158,33 @@ export function LoginForm() {
               Signing in...
             </>
           ) : (
-            'Sign In'
+            "Sign In"
           )}
         </button>
 
         {/* Demo Credentials */}
         <div className="mt-6 pt-6 border-t border-gray-200">
-          <p className="text-xs text-gray-600 mb-3 text-center">Quick Demo Access:</p>
+          <p className="text-xs text-gray-600 mb-3 text-center">
+            Quick Demo Access:
+          </p>
           <div className="grid grid-cols-3 gap-2">
             <button
               type="button"
-              onClick={() => fillDemoCredentials('admin')}
+              onClick={() => fillDemoCredentials("admin")}
               className="px-3 py-2 text-xs font-medium text-purple-700 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
             >
               Admin
             </button>
             <button
               type="button"
-              onClick={() => fillDemoCredentials('manager')}
+              onClick={() => fillDemoCredentials("manager")}
               className="px-3 py-2 text-xs font-medium text-indigo-700 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
             >
               Manager
             </button>
             <button
               type="button"
-              onClick={() => fillDemoCredentials('agent')}
+              onClick={() => fillDemoCredentials("agent")}
               className="px-3 py-2 text-xs font-medium text-pink-700 bg-pink-50 rounded-lg hover:bg-pink-100 transition-colors"
             >
               Agent
@@ -182,7 +194,7 @@ export function LoginForm() {
 
         {/* Register Link */}
         <p className="text-center text-sm text-gray-600">
-          Don't have an account?{' '}
+          Don't have an account?{" "}
           <Link
             href="/register"
             className="font-medium text-purple-600 hover:text-purple-700 transition-colors"

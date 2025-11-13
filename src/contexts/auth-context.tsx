@@ -57,30 +57,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const response = await fetch(`${API_URL}/api/v1/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include", // Important: Include cookies
       body: JSON.stringify({ email, password }),
     });
 
-    if (!response.ok) throw new Error("Login failed");
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || "Login failed");
+    }
 
     const data = await response.json();
-    setUser(data.data.user);
+
+    // Store tokens in both localStorage and set cookie
     localStorage.setItem("auth_token", data.data.token);
     localStorage.setItem("refresh_token", data.data.refreshToken);
-  };
 
+    // Set cookie for middleware
+    document.cookie = `auth_token=${data.data.token}; path=/; max-age=${
+      7 * 24 * 60 * 60
+    }`; // 7 days
+
+    // Then update user state
+    setUser(data.data.user);
+
+    return data.data;
+  };
   const register = async (email: string, password: string, name: string) => {
     const response = await fetch(`${API_URL}/api/v1/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({ email, password, name }),
     });
 
-    if (!response.ok) throw new Error("Registration failed");
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || "Registration failed");
+    }
 
     const data = await response.json();
-    setUser(data.data.user);
+
     localStorage.setItem("auth_token", data.data.token);
     localStorage.setItem("refresh_token", data.data.refreshToken);
+
+    // Set cookie for middleware
+    document.cookie = `auth_token=${data.data.token}; path=/; max-age=${
+      7 * 24 * 60 * 60
+    }`;
+
+    setUser(data.data.user);
+
+    return data.data;
   };
 
   const logout = async () => {
@@ -90,6 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await fetch(`${API_URL}/api/v1/auth/logout`, {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
+          credentials: "include",
         });
       }
     } catch (error) {
@@ -98,6 +126,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     localStorage.removeItem("auth_token");
     localStorage.removeItem("refresh_token");
+
+    // Clear cookie
+    document.cookie =
+      "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
   };
 
   const refreshToken = async () => {

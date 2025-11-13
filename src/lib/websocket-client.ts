@@ -29,60 +29,78 @@ class WebSocketClient {
         return;
       }
 
+      // Don't attempt connection if backend is not available
+      if (process.env.NEXT_PUBLIC_ENABLE_REALTIME === "false") {
+        console.log("Real-time updates disabled");
+        reject(new Error("Real-time disabled"));
+        return;
+      }
+
       console.log("Attempting WebSocket connection to:", this.url);
 
-      this.socket = io(this.url, {
-        auth: token ? { token } : undefined,
-        transports: ["websocket", "polling"],
-        timeout: 15000,
-        forceNew: true,
-        upgrade: true,
-        rememberUpgrade: true,
-      });
+      try {
+        this.socket = io(this.url, {
+          auth: token ? { token } : undefined,
+          transports: ["websocket", "polling"],
+          timeout: 10000,
+          forceNew: true,
+          upgrade: true,
+          rememberUpgrade: true,
+          reconnection: true,
+          reconnectionDelay: 1000,
+          reconnectionDelayMax: 5000,
+          reconnectionAttempts: 5,
+        });
 
-      this.socket.on("connect", () => {
-        console.log("WebSocket connected:", this.socket?.id);
-        this.reconnectAttempts = 0;
-        resolve();
-      });
+        this.socket.on("connect", () => {
+          console.log("✅ WebSocket connected:", this.socket?.id);
+          this.reconnectAttempts = 0;
+          resolve();
+        });
 
-      this.socket.on("connect_error", (error) => {
-        console.error("WebSocket connection error:", error);
-        this.handleReconnect();
+        this.socket.on("connect_error", (error) => {
+          console.warn(
+            "⚠️ WebSocket connection error (backend may be offline):",
+            error.message
+          );
+          // Don't reject immediately - allow app to work without WebSocket
+          if (this.reconnectAttempts === 0) {
+            reject(error);
+          }
+        });
+
+        this.socket.on("disconnect", (reason) => {
+          console.log("WebSocket disconnected:", reason);
+        });
+
+        // Handle real-time events
+        this.socket.on("feedback", (data: NewFeedbackEvent["data"]) => {
+          this.emit("feedback", data);
+        });
+
+        this.socket.on("alert", (data: NewAlertEvent["data"]) => {
+          this.emit("alert", data);
+        });
+
+        this.socket.on("metric_update", (data: MetricUpdateEvent["data"]) => {
+          this.emit("metric_update", data);
+        });
+
+        this.socket.on("sentiment_update", (data: any) => {
+          this.emit("sentiment_update", data);
+        });
+
+        this.socket.on("channel_update", (data: any) => {
+          this.emit("channel_update", data);
+        });
+
+        this.socket.on("error_report", (data: any) => {
+          this.emit("error_report", data);
+        });
+      } catch (error) {
+        console.error("Failed to initialize WebSocket:", error);
         reject(error);
-      });
-
-      this.socket.on("disconnect", (reason) => {
-        console.log("WebSocket disconnected:", reason);
-        if (reason === "io server disconnect") {
-          this.handleReconnect();
-        }
-      });
-
-      // Handle real-time events
-      this.socket.on("feedback", (data: NewFeedbackEvent["data"]) => {
-        this.emit("feedback", data);
-      });
-
-      this.socket.on("alert", (data: NewAlertEvent["data"]) => {
-        this.emit("alert", data);
-      });
-
-      this.socket.on("metric_update", (data: MetricUpdateEvent["data"]) => {
-        this.emit("metric_update", data);
-      });
-
-      this.socket.on("sentiment_update", (data: any) => {
-        this.emit("sentiment_update", data);
-      });
-
-      this.socket.on("channel_update", (data: any) => {
-        this.emit("channel_update", data);
-      });
-
-      this.socket.on("error_report", (data: any) => {
-        this.emit("error_report", data);
-      });
+      }
     });
   }
 
@@ -93,15 +111,19 @@ class WebSocketClient {
         this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
 
       console.log(
-        `Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts})`
+        `Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`
       );
 
       setTimeout(() => {
-        this.connect();
+        this.connect().catch(() => {
+          console.log(
+            "Reconnection attempt failed, app running in offline mode"
+          );
+        });
       }, delay);
     } else {
       console.warn(
-        "Max reconnection attempts reached - running in offline mode"
+        "⚠️ Max reconnection attempts reached - app running in offline mode (real-time updates disabled)"
       );
     }
   }
