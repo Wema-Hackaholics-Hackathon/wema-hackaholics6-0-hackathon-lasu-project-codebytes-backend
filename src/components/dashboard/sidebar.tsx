@@ -1,108 +1,144 @@
-'use client';
+"use client";
 
-import { useState } from "react";
-import { 
-  BarChart3, 
-  MessageSquare, 
-  Users, 
-  TrendingUp, 
-  Settings, 
-  Bell, 
-  FileText,
-  Map,
-  Heart,
-  Target,
-  ChevronLeft,
-  ChevronRight
+import Link from "next/link";
+import NextImage from "next/image";
+import { usePathname } from "next/navigation";
+import {
+  LayoutDashboard,
+  MessageSquare,
+  AlertCircle,
+  TrendingUp,
+  Tag,
+  Users,
+  Settings,
+  LogOut,
+  Menu,
+  X,
 } from "lucide-react";
+import { useState } from "react";
+import { useAuth } from "@/contexts/auth-context";
 
-interface SidebarProps {
-  activeSection?: string;
-  onSectionChange?: (section: string) => void;
-}
+const navigation = [
+  { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Feedback", href: "/dashboard/feedback", icon: MessageSquare },
+  { name: "Alerts", href: "/dashboard/alerts", icon: AlertCircle },
+  { name: "Analytics", href: "/dashboard/analytics", icon: TrendingUp },
+  { name: "Topics", href: "/dashboard/topics", icon: Tag },
+  { name: "Users", href: "/dashboard/users", icon: Users },
+  { name: "Settings", href: "/dashboard/settings", icon: Settings },
+];
 
-export function Sidebar({ activeSection = 'overview', onSectionChange }: SidebarProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+export default function Sidebar() {
+  const pathname = usePathname();
+  const { user, logout } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const menuItems = [
-    { id: 'overview', label: 'Overview', icon: BarChart3 },
-    { id: 'sentiment', label: 'Sentiment Analysis', icon: Heart },
-    { id: 'feedback', label: 'Feedback', icon: MessageSquare },
-    { id: 'channels', label: 'Channels', icon: Target },
-    { id: 'geography', label: 'Geography', icon: Map },
-    { id: 'trends', label: 'Trends', icon: TrendingUp },
-    { id: 'users', label: 'Users', icon: Users },
-    { id: 'reports', label: 'Reports', icon: FileText },
-    { id: 'alerts', label: 'Alerts', icon: Bell },
-    { id: 'settings', label: 'Settings', icon: Settings }
-  ];
+  const handleLogout = async () => {
+    await logout();
+    window.location.href = "/login";
+  };
 
   return (
-    <div className={`bg-white border-r border-gray-200 transition-all duration-300 ${
-      isCollapsed ? 'w-16' : 'w-64'
-    }`}>
-      <div className="p-4">
-        <div className="flex items-center justify-between">
-          {!isCollapsed && (
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-purple-800 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">W</span>
-              </div>
-              <span className="font-semibold text-gray-900">Wema Bank</span>
-            </div>
-          )}
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            {isCollapsed ? (
-              <ChevronRight className="w-4 h-4 text-gray-600" />
-            ) : (
-              <ChevronLeft className="w-4 h-4 text-gray-600" />
-            )}
-          </button>
-        </div>
-      </div>
+    <>
+      {/* Mobile menu button */}
+      <button
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-md bg-white border border-gray-200 shadow-sm"
+      >
+        {isMobileMenuOpen ? (
+          <X className="w-5 h-5 text-gray-600" />
+        ) : (
+          <Menu className="w-5 h-5 text-gray-600" />
+        )}
+      </button>
 
-      <nav className="px-2 pb-4">
-        <ul className="space-y-1">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeSection === item.id;
-            
-            return (
-              <li key={item.id}>
-                <button
-                  onClick={() => onSectionChange?.(item.id)}
-                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-purple-50 text-purple-700 border-r-2 border-purple-700'
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                  title={isCollapsed ? item.label : undefined}
-                >
-                  <Icon className="w-5 h-5 flex-shrink-0" />
-                  {!isCollapsed && <span>{item.label}</span>}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-
-      {!isCollapsed && (
-        <div className="absolute bottom-4 left-4 right-4">
-          <div className="bg-purple-50 rounded-lg p-3">
-            <div className="text-sm font-medium text-purple-900 mb-1">
-              System Health
+      {/* Sidebar */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out ${
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        } lg:translate-x-0`}
+      >
+        <div className="flex flex-col h-full">
+          {/* Logo */}
+          <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-200">
+            <div className="w-10 h-10 flex items-center justify-center">
+              <NextImage
+                src="/logo.png"
+                alt="Wema Bank Logo"
+                width={40}
+                height={40}
+                className="object-contain"
+                style={{ height: "auto" }}
+              />
             </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-xs text-purple-700">All systems operational</span>
+            <div>
+              <h1 className="text-sm font-semibold text-gray-900">
+                RT-CX Platform
+              </h1>
+              <p className="text-xs text-gray-500">Wema Bank</p>
             </div>
           </div>
+
+          {/* Navigation */}
+          <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+            {navigation.map((item) => {
+              const isActive =
+                pathname === item.href || pathname?.startsWith(item.href + "/");
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                    isActive
+                      ? "bg-purple-50 text-purple-700"
+                      : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                  }`}
+                >
+                  <item.icon
+                    className={`w-5 h-5 ${
+                      isActive ? "text-purple-600" : "text-gray-400"
+                    }`}
+                  />
+                  {item.name}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* User section */}
+          <div className="border-t border-gray-200 p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                <span className="text-purple-700 font-semibold text-sm">
+                  {user?.name?.charAt(0) || user?.email?.charAt(0) || "U"}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {user?.name || "User"}
+                </p>
+                <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 w-full px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-md transition-colors"
+            >
+              <LogOut className="w-4 h-4 text-gray-400" />
+              Sign out
+            </button>
+          </div>
         </div>
+      </aside>
+
+      {/* Mobile backdrop */}
+      {isMobileMenuOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-gray-600 bg-opacity-50 z-30"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
       )}
-    </div>
+    </>
   );
 }

@@ -10,7 +10,7 @@ export interface ErrorReport {
   timestamp: Date;
   userId?: string;
   sessionId: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: "low" | "medium" | "high" | "critical";
   tags?: Record<string, string>;
 }
 
@@ -30,7 +30,7 @@ export interface PageVisit {
   title: string;
   timestamp: Date;
   timeOnPage?: number;
-  exitType?: 'navigation' | 'close' | 'refresh' | 'error';
+  exitType?: "navigation" | "close" | "refresh" | "error";
 }
 
 class ErrorTracker {
@@ -47,11 +47,12 @@ class ErrorTracker {
       lastActivity: new Date(),
       pages: [],
       errors: [],
-      userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : '',
-      referrer: typeof window !== 'undefined' ? document.referrer : undefined
+      userAgent:
+        typeof window !== "undefined" ? window.navigator.userAgent : "",
+      referrer: typeof window !== "undefined" ? document.referrer : undefined,
     };
 
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       this.setupErrorHandlers();
       this.setupPageTracking();
     }
@@ -70,38 +71,38 @@ class ErrorTracker {
 
   private setupErrorHandlers() {
     // Global error handler
-    window.addEventListener('error', (event) => {
+    window.addEventListener("error", (event) => {
       this.captureError({
         message: event.message,
         stack: event.error?.stack,
         url: event.filename || window.location.href,
         line: event.lineno,
         column: event.colno,
-        severity: 'high'
+        severity: "high",
       });
     });
 
     // Unhandled promise rejection handler
-    window.addEventListener('unhandledrejection', (event) => {
+    window.addEventListener("unhandledrejection", (event) => {
       this.captureError({
         message: `Unhandled Promise Rejection: ${event.reason}`,
         stack: event.reason?.stack,
         url: window.location.href,
-        severity: 'medium'
+        severity: "medium",
       });
     });
 
     // React error boundary integration
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       (window as any).__REACT_ERROR_OVERLAY_GLOBAL_HOOK__ = {
         onBuildError: (error: Error) => {
           this.captureError({
             message: error.message,
             stack: error.stack,
             url: window.location.href,
-            severity: 'critical'
+            severity: "critical",
           });
-        }
+        },
       };
     }
   }
@@ -111,15 +112,15 @@ class ErrorTracker {
     this.trackPageVisit();
 
     // Track page visibility changes
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden') {
-        this.updateLastPageVisit('navigation');
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") {
+        this.updateLastPageVisit("navigation");
       }
     });
 
     // Track beforeunload
-    window.addEventListener('beforeunload', () => {
-      this.updateLastPageVisit('close');
+    window.addEventListener("beforeunload", () => {
+      this.updateLastPageVisit("close");
       this.sendSessionData();
     });
 
@@ -128,19 +129,19 @@ class ErrorTracker {
     const originalReplaceState = history.replaceState;
 
     history.pushState = (...args) => {
-      this.updateLastPageVisit('navigation');
+      this.updateLastPageVisit("navigation");
       originalPushState.apply(history, args);
       setTimeout(() => this.trackPageVisit(), 0);
     };
 
     history.replaceState = (...args) => {
-      this.updateLastPageVisit('navigation');
+      this.updateLastPageVisit("navigation");
       originalReplaceState.apply(history, args);
       setTimeout(() => this.trackPageVisit(), 0);
     };
 
-    window.addEventListener('popstate', () => {
-      this.updateLastPageVisit('navigation');
+    window.addEventListener("popstate", () => {
+      this.updateLastPageVisit("navigation");
       setTimeout(() => this.trackPageVisit(), 0);
     });
   }
@@ -149,15 +150,16 @@ class ErrorTracker {
     const pageVisit: PageVisit = {
       url: window.location.href,
       title: document.title,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     this.currentSession.pages.push(pageVisit);
     this.currentSession.lastActivity = new Date();
   }
 
-  private updateLastPageVisit(exitType: PageVisit['exitType']) {
-    const lastPage = this.currentSession.pages[this.currentSession.pages.length - 1];
+  private updateLastPageVisit(exitType: PageVisit["exitType"]) {
+    const lastPage =
+      this.currentSession.pages[this.currentSession.pages.length - 1];
     if (lastPage && !lastPage.timeOnPage) {
       lastPage.timeOnPage = Date.now() - lastPage.timestamp.getTime();
       lastPage.exitType = exitType;
@@ -171,7 +173,7 @@ class ErrorTracker {
     url?: string;
     line?: number;
     column?: number;
-    severity: ErrorReport['severity'];
+    severity: ErrorReport["severity"];
     tags?: Record<string, string>;
   }) {
     const error: ErrorReport = {
@@ -179,24 +181,27 @@ class ErrorTracker {
       message: errorData.message,
       stack: errorData.stack,
       componentStack: errorData.componentStack,
-      url: errorData.url || (typeof window !== 'undefined' ? window.location.href : ''),
-      userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : '',
+      url:
+        errorData.url ||
+        (typeof window !== "undefined" ? window.location.href : ""),
+      userAgent:
+        typeof window !== "undefined" ? window.navigator.userAgent : "",
       timestamp: new Date(),
       userId: this.userId,
       sessionId: this.sessionId,
       severity: errorData.severity,
-      tags: errorData.tags
+      tags: errorData.tags,
     };
 
     this.currentSession.errors.push(error);
     this.currentSession.lastActivity = new Date();
 
     // Send error immediately for critical errors
-    if (errorData.severity === 'critical') {
+    if (errorData.severity === "critical") {
       this.sendErrorReport(error);
     }
 
-    console.error('Error captured:', error);
+    console.error("Error captured:", error);
   }
 
   setUserId(userId: string) {
@@ -207,8 +212,9 @@ class ErrorTracker {
   addTag(key: string, value: string) {
     // Add tags to future errors
     if (!this.currentSession.errors.length) return;
-    
-    const lastError = this.currentSession.errors[this.currentSession.errors.length - 1];
+
+    const lastError =
+      this.currentSession.errors[this.currentSession.errors.length - 1];
     if (!lastError.tags) lastError.tags = {};
     lastError.tags[key] = value;
   }
@@ -216,26 +222,26 @@ class ErrorTracker {
   private async sendErrorReport(error: ErrorReport) {
     try {
       // In a real implementation, send to your error tracking service
-      await fetch('/api/errors', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(error)
+      await fetch("/api/errors", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(error),
       });
     } catch (e) {
-      console.error('Failed to send error report:', e);
+      console.error("Failed to send error report:", e);
     }
   }
 
   private async sendSessionData() {
     try {
       // In a real implementation, send to your analytics service
-      await fetch('/api/analytics/session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(this.currentSession)
+      await fetch("/api/analytics/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(this.currentSession),
       });
     } catch (e) {
-      console.error('Failed to send session data:', e);
+      console.error("Failed to send session data:", e);
     }
   }
 
@@ -244,24 +250,27 @@ class ErrorTracker {
   }
 
   getDropOffAnalytics() {
-    const pageStats = new Map<string, {
-      visits: number;
-      exits: number;
-      totalTime: number;
-      bounces: number;
-    }>();
+    const pageStats = new Map<
+      string,
+      {
+        visits: number;
+        exits: number;
+        totalTime: number;
+        bounces: number;
+      }
+    >();
 
     // Analyze all sessions (in real implementation, this would come from your database)
     this.currentSession.pages.forEach((page, index) => {
       const url = new URL(page.url).pathname;
-      
+
       if (!pageStats.has(url)) {
         pageStats.set(url, { visits: 0, exits: 0, totalTime: 0, bounces: 0 });
       }
 
       const stats = pageStats.get(url)!;
       stats.visits++;
-      
+
       if (page.timeOnPage) {
         stats.totalTime += page.timeOnPage;
       }
@@ -283,68 +292,8 @@ class ErrorTracker {
       exits: stats.exits,
       exitRate: (stats.exits / stats.visits) * 100,
       avgTimeOnPage: stats.totalTime / stats.visits / 1000, // Convert to seconds
-      bounceRate: (stats.bounces / stats.visits) * 100
+      bounceRate: (stats.bounces / stats.visits) * 100,
     }));
-  }
-}
-
-import React from 'react';
-import { AlertTriangle } from 'lucide-react';
-
-// React Error Boundary component
-export class ErrorBoundary extends React.Component<
-  { children: React.ReactNode; fallback?: React.ComponentType<{ error: Error }> },
-  { hasError: boolean; error?: Error }
-> {
-  constructor(props: any) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    const tracker = ErrorTracker.getInstance();
-    tracker.captureError({
-      message: error.message,
-      stack: error.stack,
-      componentStack: errorInfo.componentStack,
-      severity: 'high',
-      tags: { boundary: 'react-error-boundary' }
-    });
-  }
-
-  render() {
-    if (this.state.hasError) {
-      const FallbackComponent = this.props.fallback;
-      if (FallbackComponent && this.state.error) {
-        return <FallbackComponent error={this.state.error} />;
-      }
-      
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-6">
-            <div className="flex items-center mb-4">
-              <AlertTriangle className="h-8 w-8 text-red-500 mr-3" />
-              <h1 className="text-xl font-semibold text-gray-900">Something went wrong</h1>
-            </div>
-            <p className="text-gray-600 mb-4">
-              We've encountered an unexpected error. Our team has been notified and is working on a fix.
-            </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition-colors"
-            >
-              Reload Page
-            </button>
-          </div>
-        </div>
-      );
-    }
-
-    return this.props.children;
   }
 }
 

@@ -1,7 +1,14 @@
-'use client';
+"use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  Legend,
+} from "recharts";
 import { formatNumber, getEmotionColor } from "@/lib/utils";
 
 interface EmotionData {
@@ -15,22 +22,24 @@ interface EmotionBreakdownProps {
 }
 
 const EMOTION_COLORS = {
-  Joy: '#10B981',
-  Satisfaction: '#3B82F6',
-  Neutral: '#6B7280',
-  Frustration: '#F59E0B',
-  Anger: '#EF4444',
-  Sadness: '#8B5CF6'
+  Joy: "#10B981",
+  Satisfaction: "#3B82F6",
+  Neutral: "#6B7280",
+  Frustration: "#F59E0B",
+  Anger: "#EF4444",
+  Sadness: "#8B5CF6",
 };
 
 export function EmotionBreakdown({ emotions }: EmotionBreakdownProps) {
-  const chartData = emotions.map(emotion => ({
+  const chartData = emotions.map((emotion) => ({
     ...emotion,
-    fill: EMOTION_COLORS[emotion.emotion as keyof typeof EMOTION_COLORS] || '#6B7280'
+    fill:
+      EMOTION_COLORS[emotion.emotion as keyof typeof EMOTION_COLORS] ||
+      "#6B7280",
   }));
 
   const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
+    if (active && payload && payload.length && payload[0]?.payload) {
       const data = payload[0].payload;
       return (
         <div className="bg-white p-3 border rounded-lg shadow-lg">
@@ -53,7 +62,12 @@ export function EmotionBreakdown({ emotions }: EmotionBreakdownProps) {
       </CardHeader>
       <CardContent>
         <div className="h-80 w-full">
-          <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={320}>
+          <ResponsiveContainer
+            width="100%"
+            height="100%"
+            minWidth={300}
+            minHeight={320}
+          >
             <PieChart>
               <Pie
                 data={chartData}
@@ -75,9 +89,14 @@ export function EmotionBreakdown({ emotions }: EmotionBreakdownProps) {
         <div className="mt-4 grid grid-cols-2 gap-3">
           {emotions.map((emotion, index) => (
             <div key={index} className="flex items-center space-x-2">
-              <div 
+              <div
                 className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: EMOTION_COLORS[emotion.emotion as keyof typeof EMOTION_COLORS] }}
+                style={{
+                  backgroundColor:
+                    EMOTION_COLORS[
+                      emotion.emotion as keyof typeof EMOTION_COLORS
+                    ],
+                }}
               />
               <span className="text-sm text-gray-700">{emotion.emotion}</span>
               <span className="text-sm font-medium text-gray-900">

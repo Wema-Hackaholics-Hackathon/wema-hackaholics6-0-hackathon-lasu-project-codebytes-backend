@@ -1,7 +1,17 @@
-'use client';
+"use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Area,
+  AreaChart,
+} from "recharts";
 
 interface TrendData {
   hour?: number;
@@ -13,20 +23,24 @@ interface TrendData {
 interface SentimentTrendsProps {
   hourlyData?: TrendData[];
   weeklyData?: TrendData[];
-  viewType?: 'hourly' | 'weekly';
+  viewType?: "hourly" | "weekly";
 }
 
-export function SentimentTrends({ hourlyData = [], weeklyData = [], viewType = 'hourly' }: SentimentTrendsProps) {
-  const data = viewType === 'hourly' ? hourlyData : weeklyData;
-  const xAxisKey = viewType === 'hourly' ? 'hour' : 'day';
+export function SentimentTrends({
+  hourlyData = [],
+  weeklyData = [],
+  viewType = "hourly",
+}: SentimentTrendsProps) {
+  const data = viewType === "hourly" ? hourlyData : weeklyData;
+  const xAxisKey = viewType === "hourly" ? "hour" : "day";
 
   const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
+    if (active && payload && payload.length && payload[0]?.payload) {
       const data = payload[0].payload;
       return (
         <div className="bg-white p-3 border rounded-lg shadow-lg">
           <p className="font-medium">
-            {viewType === 'hourly' ? `${label}:00` : label}
+            {viewType === "hourly" ? `${label}:00` : label}
           </p>
           <p className="text-sm text-purple-600">
             Sentiment: {data.sentiment.toFixed(1)}/10
@@ -41,7 +55,7 @@ export function SentimentTrends({ hourlyData = [], weeklyData = [], viewType = '
   };
 
   const formatXAxisLabel = (value: any) => {
-    if (viewType === 'hourly') {
+    if (viewType === "hourly") {
       return `${value}:00`;
     }
     return value;
@@ -54,20 +68,20 @@ export function SentimentTrends({ hourlyData = [], weeklyData = [], viewType = '
           Sentiment Trends
         </CardTitle>
         <div className="flex space-x-2">
-          <button 
+          <button
             className={`px-3 py-1 text-sm rounded-md transition-colors ${
-              viewType === 'hourly' 
-                ? 'bg-purple-600 text-white' 
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              viewType === "hourly"
+                ? "bg-purple-600 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
           >
             24H
           </button>
-          <button 
+          <button
             className={`px-3 py-1 text-sm rounded-md transition-colors ${
-              viewType === 'weekly' 
-                ? 'bg-purple-600 text-white' 
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              viewType === "weekly"
+                ? "bg-purple-600 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
           >
             7D
@@ -76,24 +90,35 @@ export function SentimentTrends({ hourlyData = [], weeklyData = [], viewType = '
       </CardHeader>
       <CardContent>
         <div className="h-80 w-full">
-          <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={320}>
-            <AreaChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+          <ResponsiveContainer
+            width="100%"
+            height="100%"
+            minWidth={300}
+            minHeight={320}
+          >
+            <AreaChart
+              data={data}
+              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            >
               <defs>
-                <linearGradient id="sentimentGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0.1}/>
+                <linearGradient
+                  id="sentimentGradient"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0.1} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis 
+              <XAxis
                 dataKey={xAxisKey}
                 tick={{ fontSize: 12 }}
                 tickFormatter={formatXAxisLabel}
               />
-              <YAxis 
-                domain={[0, 10]}
-                tick={{ fontSize: 12 }}
-              />
+              <YAxis domain={[0, 10]} tick={{ fontSize: 12 }} />
               <Tooltip content={<CustomTooltip />} />
               <Area
                 type="monotone"
@@ -105,17 +130,19 @@ export function SentimentTrends({ hourlyData = [], weeklyData = [], viewType = '
             </AreaChart>
           </ResponsiveContainer>
         </div>
-        
+
         <div className="mt-4 grid grid-cols-3 gap-4 text-center">
           <div className="p-3 bg-green-50 rounded-lg">
             <div className="text-lg font-bold text-green-600">
-              {Math.max(...data.map(d => d.sentiment)).toFixed(1)}
+              {Math.max(...data.map((d) => d.sentiment)).toFixed(1)}
             </div>
             <div className="text-sm text-green-700">Peak Score</div>
           </div>
           <div className="p-3 bg-blue-50 rounded-lg">
             <div className="text-lg font-bold text-blue-600">
-              {(data.reduce((sum, d) => sum + d.sentiment, 0) / data.length).toFixed(1)}
+              {(
+                data.reduce((sum, d) => sum + d.sentiment, 0) / data.length
+              ).toFixed(1)}
             </div>
             <div className="text-sm text-blue-700">Average</div>
           </div>
