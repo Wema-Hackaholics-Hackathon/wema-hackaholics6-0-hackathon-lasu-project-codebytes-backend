@@ -1,6 +1,6 @@
-# RT-CX Platform Backend
+# RT-CX Platform 
 
-Real-time Customer Experience Platform - Backend API Server
+Real-time Customer Experience Platform Frontend
 
 ---
 
@@ -8,12 +8,13 @@ Real-time Customer Experience Platform - Backend API Server
 
 - [Tijani Sheu Ahmad](https://github.com/ahmaddev-codes)
 - [Burhan Idowu Babatunde](https://github.com/oreiwatsuyoi)
-- [Elijah Samuel opeyemi](https://github.com/Samuel0008)
+- [Elijah Samuel Opeyemi](https://github.com/Samuel0008)
 
 ## 🚀 Live Demo
 
 - **Live Application**: [Your deployed frontend URL - Vercel/Netlify]
-- **Backend API**: [Your deployed backend API endpoint URL]
+- **Backend API**: [[https://rt-cx-platform-backend-production.up.railway.app/](https://rt-cx-platform-backend-production.up.railway.app/api-docs/)]
+- **Backend Repo**: [https://github.com/ahmaddev-codes/rt-cx-platform-backend]
 - **Recorded Demo**: [Link to your Loom demo video]
 
 ## 🎯 The Problem
