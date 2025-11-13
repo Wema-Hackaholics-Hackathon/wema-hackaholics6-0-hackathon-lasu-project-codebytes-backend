@@ -245,7 +245,7 @@ export default function TopicsPage() {
             <div>
               <p className="text-sm font-medium text-gray-600">Trending</p>
               <p className="text-2xl font-bold text-gray-900 mt-1">
-                {topics.filter((t) => t.count > avgMentions).length}
+                {topics.filter((t) => (t.count ?? 0) > avgMentions).length}
               </p>
             </div>
             <TrendingUp className="w-8 h-8 text-orange-600" />

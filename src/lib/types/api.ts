@@ -166,6 +166,12 @@ export interface Topic {
   category: string | null;
   createdAt: string;
   updatedAt: string;
+  // Optional counts included by some backend responses (e.g., Prisma _count or aggregated 'count')
+  count?: number;
+  _count?: {
+    feedback?: number;
+    [key: string]: number | undefined;
+  } | null;
 }
 
 export interface CreateTopicDTO {
