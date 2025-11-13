@@ -1,6 +1,6 @@
-# RT-CX Platform Backend
+# RT-CX Platform 
 
-Real-time Customer Experience Platform - Backend API Server
+Real-time Customer Experience Platform Frontend
 
 ---
 
@@ -8,7 +8,7 @@ Real-time Customer Experience Platform - Backend API Server
 
 - [Tijani Sheu Ahmad](https://github.com/ahmaddev-codes)
 - [Burhan Idowu Babatunde](https://github.com/oreiwatsuyoi)
-- [Elijah Samuel opeyemi](https://github.com/Samuel0008)
+- [Elijah Samuel Opeyemi](https://github.com/Samuel0008)
 
 ## 🚀 Live Demo
 
