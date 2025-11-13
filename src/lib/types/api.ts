@@ -21,6 +21,12 @@ export interface PaginatedResponse<T> {
   };
 }
 
+export interface PaginationQuery {
+  page?: number;
+  limit?: number;
+  sort?: string;
+}
+
 // User types
 export interface User {
   id: string;
@@ -34,16 +40,44 @@ export interface User {
 
 export type Role = "ADMIN" | "MANAGER" | "AGENT" | "API_USER";
 
+export interface CreateUserDTO {
+  email: string;
+  password: string;
+  name?: string;
+  role?: Role;
+}
+
+export interface UpdateUserDTO {
+  name?: string;
+  role?: Role;
+  isActive?: boolean;
+}
+
 // Auth types
 export interface LoginDTO {
   email: string;
   password: string;
 }
 
+export interface RegisterDTO {
+  email: string;
+  password: string;
+  name?: string;
+}
+
 export interface AuthResponse {
   token: string;
   refreshToken: string;
   user: User;
+}
+
+export interface RefreshTokenDTO {
+  refreshToken: string;
+}
+
+export interface JWTPayload {
+  userId: string;
+  role: Role;
 }
 
 // Feedback types
@@ -134,6 +168,12 @@ export interface Topic {
   updatedAt: string;
 }
 
+export interface CreateTopicDTO {
+  name: string;
+  description?: string;
+  category?: string;
+}
+
 // Alert types
 export type AlertType =
   | "SENTIMENT_SPIKE"
@@ -161,6 +201,22 @@ export interface Alert {
   resolution: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CreateAlertDTO {
+  type: AlertType;
+  severity: AlertSeverity;
+  title: string;
+  message: string;
+  assignedToId?: string;
+  threshold?: Record<string, any>;
+  dataSnapshot?: Record<string, any>;
+}
+
+export interface UpdateAlertDTO {
+  status?: AlertStatus;
+  assignedToId?: string;
+  resolution?: string;
 }
 
 // Dashboard types
